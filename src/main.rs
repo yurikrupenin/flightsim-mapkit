@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 #[cfg(feature="position-update")]
 use simconnect;
 
