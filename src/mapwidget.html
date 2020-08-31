@@ -68,11 +68,19 @@
         })
       });
 
-      vectorSource.addFeature(marker);
+      var initialized = False;
 
-      marker.setStyle(style);
+      function initializePosition() {
+        vectorSource.addFeature(marker);
+        marker.setStyle(style);
+      }
 
       function updateCoords(lat, lon, alt) {
+
+        if (!initialized) {
+          initializePosition();
+        }
+
         map.getView().setCenter(ol.proj.fromLonLat([lon, lat]));
         marker.setGeometry(new ol.geom.Point(ol.proj.fromLonLat([lon, lat])));
       }

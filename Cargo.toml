@@ -8,4 +8,9 @@ edition = "2018"
 
 [dependencies]
 web-view = { version = "0.5.4", features = ["edge"] } 
-simconnect = "0.1"
+
+[target.'cfg(windows)'.dependencies]
+simconnect = { version = "0.1", optional = true }
+
+[features]
+position-update = ['simconnect']

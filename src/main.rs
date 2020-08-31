@@ -1,5 +1,7 @@
+#[cfg(feature="position-update")]
 use simconnect;
 
+#[cfg(feature="position-update")]
 use std::{
     mem::transmute_copy,
     thread,
@@ -8,10 +10,35 @@ use std::{
 
 use web_view::*;
 
+
+#[cfg(feature="position-update")]
 struct CoordStruct {
     latitude: f64,
     longitude: f64,
     altitude: f64,
+}
+
+#[cfg(feature="position-update")]
+fn init_simconnect() -> Result<simconnect::SimConnector, &'static str> {
+    let mut fs_connect = simconnect::SimConnector::new();
+
+    if !fs_connect.connect("Flightsim Mapkit") {
+        return Err("Coudn't connect to Flight Simulator.")
+    }
+
+    fs_connect.add_data_definition(0, "PLANE LATITUDE", "Degrees",
+        simconnect::SIMCONNECT_DATATYPE_SIMCONNECT_DATATYPE_FLOAT64, u32::MAX);
+
+    fs_connect.add_data_definition(0, "PLANE LONGITUDE", "Degreese",
+        simconnect::SIMCONNECT_DATATYPE_SIMCONNECT_DATATYPE_FLOAT64, u32::MAX);
+
+    fs_connect.add_data_definition(0, "PLANE ALTITUDE", "Feet",
+        simconnect::SIMCONNECT_DATATYPE_SIMCONNECT_DATATYPE_FLOAT64, u32::MAX);
+
+    fs_connect.request_data_on_sim_object(0, 0, 0,
+        simconnect::SIMCONNECT_PERIOD_SIMCONNECT_PERIOD_SIM_FRAME);
+
+    Ok(fs_connect)
 }
 
 fn main() {
@@ -26,61 +53,53 @@ fn main() {
     .build()
     .unwrap();
 
-    let handle = webview.handle();
 
-    thread::spawn(move || {
-        let mut last_time = SystemTime::now();
-        let mut fs_connect = simconnect::SimConnector::new();
+    #[cfg(feature="position-update")]
+    {
+        let handle = webview.handle();
 
-        fs_connect.connect("Flightsim Mapkit");
+        thread::spawn(move || {
+            let mut last_time = SystemTime::now();
+            let fs_connect = init_simconnect().unwrap();
 
-        fs_connect.add_data_definition(0, "PLANE LATITUDE", "Degrees",
-            simconnect::SIMCONNECT_DATATYPE_SIMCONNECT_DATATYPE_FLOAT64, u32::MAX);
+            loop {
+                match fs_connect.get_next_message() {
+                    Ok(simconnect::DispatchResult::SimobjectData(data)) => {
+                        unsafe {
+                            match (*data).dwDefineID {
+                                0 => {
+                                    let sim_data: CoordStruct = transmute_copy(&(*data).dwData);
 
-        fs_connect.add_data_definition(0, "PLANE LONGITUDE", "Degrees",
-            simconnect::SIMCONNECT_DATATYPE_SIMCONNECT_DATATYPE_FLOAT64, u32::MAX);
+                                    let time_diff = SystemTime::now().duration_since(last_time).unwrap();
 
-        fs_connect.add_data_definition(0, "PLANE ALTITUDE", "Feet",
-            simconnect::SIMCONNECT_DATATYPE_SIMCONNECT_DATATYPE_FLOAT64, u32::MAX);
-    
-        fs_connect.request_data_on_sim_object(0, 0, 0,
-            simconnect::SIMCONNECT_PERIOD_SIMCONNECT_PERIOD_SIM_FRAME);
+                                    if time_diff >= Duration::from_secs(1) {
+                                        handle.dispatch(move |webview| {
+                                            update_position(webview, sim_data)
+                                        }).unwrap();
 
-        loop {
-            match fs_connect.get_next_message() {
-                Ok(simconnect::DispatchResult::SimobjectData(data)) => {
-                    unsafe {
-                        match (*data).dwDefineID {
-                            0 => {
-                                let sim_data: CoordStruct = transmute_copy(&(*data).dwData);
+                                        last_time = SystemTime::now();
+                                    }
 
-                                let time_diff = SystemTime::now().duration_since(last_time).unwrap();
-
-                                if time_diff >= Duration::from_secs(1) {
-                                    handle.dispatch(move |webview| {
-                                        render(webview, sim_data)
-                                    }).unwrap();
-
-                                    last_time = SystemTime::now();
-                                }
-
-                            },
-                            _ => ()
+                                },
+                                _ => ()
+                            }
                         }
-                    }
-                },
-                _ => ()
+                    },
+                    _ => ()
+                }
+
+            thread::sleep(Duration::from_millis(1));
             }
 
-        thread::sleep(Duration::from_millis(1));
-        }
-
-    });
+        });
+    }
 
     webview.run().unwrap();
 }
 
-fn render(webview: &mut WebView<()>, coords: CoordStruct) -> web_view::WVResult {
+
+#[cfg(feature="position-update")]
+fn update_position(webview: &mut WebView<()>, coords: CoordStruct) -> web_view::WVResult {
     webview.eval(&format!("updateCoords({}, {}, {})",
                 coords.latitude,
                 coords.longitude,
