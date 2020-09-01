@@ -1,47 +1,15 @@
 #![windows_subsystem = "windows"]
 
 #[cfg(feature="position-update")]
-use simconnect;
+mod fs_connect;
 
 #[cfg(feature="position-update")]
 use std::{
-    mem::transmute_copy,
     thread,
-    time::{ Duration, SystemTime },
+    time:: { Duration, SystemTime },
 };
 
 use web_view::*;
-
-
-#[cfg(feature="position-update")]
-struct CoordStruct {
-    latitude: f64,
-    longitude: f64,
-    altitude: f64,
-}
-
-#[cfg(feature="position-update")]
-fn init_simconnect() -> Result<simconnect::SimConnector, &'static str> {
-    let mut fs_connect = simconnect::SimConnector::new();
-
-    if !fs_connect.connect("Flightsim Mapkit") {
-        return Err("Coudn't connect to Flight Simulator.")
-    }
-
-    fs_connect.add_data_definition(0, "PLANE LATITUDE", "Degrees",
-        simconnect::SIMCONNECT_DATATYPE_SIMCONNECT_DATATYPE_FLOAT64, u32::MAX);
-
-    fs_connect.add_data_definition(0, "PLANE LONGITUDE", "Degreese",
-        simconnect::SIMCONNECT_DATATYPE_SIMCONNECT_DATATYPE_FLOAT64, u32::MAX);
-
-    fs_connect.add_data_definition(0, "PLANE ALTITUDE", "Feet",
-        simconnect::SIMCONNECT_DATATYPE_SIMCONNECT_DATATYPE_FLOAT64, u32::MAX);
-
-    fs_connect.request_data_on_sim_object(0, 0, 0,
-        simconnect::SIMCONNECT_PERIOD_SIMCONNECT_PERIOD_SIM_FRAME);
-
-    Ok(fs_connect)
-}
 
 fn main() {
     let webview = web_view::builder()
@@ -56,40 +24,36 @@ fn main() {
     .unwrap();
 
 
+    // Run SimConnect thread
     #[cfg(feature="position-update")]
     {
         let handle = webview.handle();
 
         thread::spawn(move || {
             let mut last_time = SystemTime::now();
-            let fs_connect = init_simconnect().unwrap();
 
+            // TODO: handle failed connections
+            let fs_connection = fs_connect::init_simconnect().unwrap();
+
+            // Main loop: consume updated state from game every second...
             loop {
-                match fs_connect.get_next_message() {
-                    Ok(simconnect::DispatchResult::SimobjectData(data)) => {
-                        unsafe {
-                            match (*data).dwDefineID {
-                                0 => {
-                                    let sim_data: CoordStruct = transmute_copy(&(*data).dwData);
+                let time_diff = SystemTime::now().duration_since(last_time).unwrap();
 
-                                    let time_diff = SystemTime::now().duration_since(last_time).unwrap();
+                if time_diff >= Duration::from_secs(1) {
 
-                                    if time_diff >= Duration::from_secs(1) {
-                                        handle.dispatch(move |webview| {
-                                            update_position(webview, sim_data)
-                                        }).unwrap();
+                    // ...but update our map only once in a second as it could be expensive.
+                    match fs_connect::update(&fs_connection) {
+                        Some(coords) => { 
+                            handle.dispatch(move |webview| {
+                                update_position(webview, coords)
+                            }).expect("Unable to update WebView map state!");
+                        },
+                        None => ()
+                    }
 
-                                        last_time = SystemTime::now();
-                                    }
-
-                                },
-                                _ => ()
-                            }
-                        }
-                    },
-                    _ => ()
+                    last_time = SystemTime::now();
                 }
-
+                
             thread::sleep(Duration::from_millis(1));
             }
 
@@ -101,11 +65,11 @@ fn main() {
 
 
 #[cfg(feature="position-update")]
-fn update_position(webview: &mut WebView<()>, coords: CoordStruct) -> web_view::WVResult {
+fn update_position(webview: &mut WebView<()>, coords: fs_connect::CoordStruct) -> WVResult {
     webview.eval(&format!("updateCoords({}, {}, {})",
-                coords.latitude,
-                coords.longitude,
-                coords.altitude))
+        coords.latitude,
+        coords.longitude,
+        coords.altitude))
 }
 
 
