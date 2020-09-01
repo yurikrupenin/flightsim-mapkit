@@ -41,6 +41,8 @@ fn main() {
     // Run SimConnect thread
     #[cfg(feature="position-update")]
     {
+        let handle = webview.handle();
+        
         thread::spawn(move || {
             let mut last_time = SystemTime::now();
 
@@ -56,7 +58,7 @@ fn main() {
                     // ...but update our map only once in a second as it could be expensive.
                     match fs_connect::update(&fs_connection) {
                         Some(coords) => { 
-                            webview.handle().dispatch(move |webview| {
+                            handle.dispatch(move |webview| {
                                 update_position(webview, coords)
                             }).expect("Unable to update WebView map state!");
                         },
