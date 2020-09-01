@@ -13,15 +13,20 @@
 
       .map {
         position: absolute;
-        height: 100%;
+        height: 90%;
         width: 100%;
+        top: 10%;
         overflow: hidden;
       }
     </style>
     <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.4.3/build/ol.js"></script>
-    <title>OpenLayers example</title>
+    <title>Flightsim Mapkit</title>
   </head>
   <body>
+    <br>
+    <center>
+    <button onclick="external.invoke('load_gpx')">Load GPX file</button>
+    </center>
     <div id="map" class="map"></div>
     <script type="text/javascript">
       var map = new ol.Map({

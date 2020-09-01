@@ -7,6 +7,8 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+gpx = { version = "0.8.1" }
+tinyfiledialogs = { version = "3.3.10" }
 web-view = { version = "0.5.4", features = ["edge"] } 
 
 [target.'cfg(windows)'.dependencies]
