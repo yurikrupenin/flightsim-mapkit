@@ -4,6 +4,7 @@ use std::mem::transmute_copy;
 
 const DATA_ID_COORDS_STRUCT: u32 = 0;
 
+#[derive(Debug)]
 pub struct CoordStruct {
     pub latitude: f64,
     pub longitude: f64,
@@ -23,7 +24,7 @@ pub fn init_simconnect() -> Result<simconnect::SimConnector, &'static str> {
     fs_connect.add_data_definition(0, "PLANE LATITUDE", "Degrees",
         simconnect::SIMCONNECT_DATATYPE_SIMCONNECT_DATATYPE_FLOAT64, u32::MAX);
 
-    fs_connect.add_data_definition(0, "PLANE LONGITUDE", "Degreese",
+    fs_connect.add_data_definition(0, "PLANE LONGITUDE", "Degrees",
         simconnect::SIMCONNECT_DATATYPE_SIMCONNECT_DATATYPE_FLOAT64, u32::MAX);
 
     fs_connect.add_data_definition(0, "PLANE ALTITUDE", "Feet",
