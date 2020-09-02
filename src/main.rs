@@ -47,7 +47,6 @@ fn main() {
                                 update_position(webview, coords)
                             }).expect("Unable to update WebView map state!"); 
 
-                            println!("Updated map view!");
                             last_time = SystemTime::now();
                         }
                     },
