@@ -49,24 +49,24 @@ fn main() {
             // TODO: handle failed connections
             let fs_connection = fs_connect::init_simconnect().unwrap();
 
-            // Main loop: consume updated state from game every second...
+            // Main loop: consume updated state from game every millisecond...
             loop {
                 let time_diff = SystemTime::now().duration_since(last_time).unwrap();
 
-                if time_diff >= Duration::from_secs(1) {
-
-                    // ...but update our map only once in a second as it could be expensive.
-                    match fs_connect::update(&fs_connection) {
-                        Some(coords) => { 
+                // ...but update our map only once in a second as it could be expensive.
+                match fs_connect::update(&fs_connection) {
+                    Some(coords) => {
+                        if time_diff >= Duration::from_secs(1) {
                             handle.dispatch(move |webview| {
                                 update_position(webview, coords)
-                            }).expect("Unable to update WebView map state!");
-                        },
-                        None => ()
-                    }
+                            }).expect("Unable to update WebView map state!"); 
 
-                    last_time = SystemTime::now();
-                }
+                            println!("Updated map view!");
+                            last_time = SystemTime::now();
+                        }
+                    },
+                    None => ()
+                }     
                 
             thread::sleep(Duration::from_millis(1));
             }
