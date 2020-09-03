@@ -1,12 +1,16 @@
 [package]
 name = "flightsim-mapkit"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Yuri Krupenin <yuri.krupenin@gmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+env_logger = { version ="0.7.1" }
+gpx = { version = "0.8.1" }
+log = { version = "0.4.11" }
+tinyfiledialogs = { version = "3.3.10" }
 web-view = { version = "0.5.4", features = ["edge"] } 
 
 [target.'cfg(windows)'.dependencies]
