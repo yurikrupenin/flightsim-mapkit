@@ -26,7 +26,7 @@ fn main() {
     .content(Content::Html(HTML))
     .size(800, 600)
     .resizable(true)
-    .debug(true)
+    .debug(false)
     .user_data(())
     // Setup JS -> Rust calls (GUI buttons basically)
     .invoke_handler(|webview, arg| {
@@ -159,5 +159,4 @@ fn report_unimplemented_js_call(name: &str) {
 }
 
 
-const HTML: &str = include_str!("mapwidget.html");
-
+const HTML: &str = include_str!(concat!(env!("OUT_DIR"), "/index.html"));
