@@ -2,6 +2,8 @@
 <html lang="en">
   <head>
     <link rel="stylesheet" href="css/openlayers/ol.css" type="text/css">
+    <link rel="stylesheet" href="css/spectre/spectre.min.css" type="text/css">
+    <link rel="stylesheet" href="css/spectre/spectre-icons.min.css" type="text/css">
     <style>
       html, body {
         width: 100%;
@@ -13,14 +15,14 @@
 
       .menu {
         position: relative;
-        top: 5px;
+        top: 2px;
       }
 
       .map {
         position: absolute;
         height: 100%;
         width: 100%;
-        top: 32px;
+        top: 50px;
         overflow: hidden;
       }
     </style>
@@ -29,14 +31,54 @@
   <body>
     <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.4.3/build/ol.js"></script>
     <div class="menu">
-      <button onclick="external.invoke('load_gpx')">Load GPX file</button>
-      <button onclick="centerOnPosition = !centerOnPosition;">Toggle position lock</button>
+      <div class="container">
+        <div class="columns">
+          <div class="column col-6">
+            <a class="btn btn-action btn-primary btn-sm" href="#modal-menu"><i class="icon icon-menu"></i></a>
+            <button class="btn btn-primary btn-sm" onclick="external.invoke('load_gpx')">Load GPX file</button>
+            <button class="btn btn-primary btn-sm" onclick="external.invoke('save_track')">Save current track</button>
+          </div>
+          <div class="column col-3">
+            <label class="form-switch">
+              <input type="checkbox" checked="">
+              <i class="form-icon"></i>
+              Position lock
+            </label>
+          </div>
+          <div class="column col-3">
+            <label class="form-switch">
+            <input type="checkbox" checked="centerOnPosition = !centerOnPosition;">
+            <i class="form-icon"></i>
+            Visualize path
+            </label>
+          </div>
+        </div>
+      </div>    
     </div>
     <div id="map" class="map"></div>
     <script src="js/main.js"></script>
     <script type="text/javascript">
       window.onload = function() { initialize(); }
     </script>
+
+    <!-- About/Settings modal menu-->
+    <div class="column">
+      <div class="modal" id="modal-menu"><a class="modal-overlay" href="#modals" aria-label="Close"></a>
+        <div class="modal-container" role="document">
+          <div class="modal-header"><a class="btn btn-clear float-right" href="#modals" aria-label="Close"></a>
+            <div class="modal-title h5">Flightsim Mapkit v0.2</div>
+          </div>
+          <div class="modal-body">
+            <div class="content">
+              <p>Noерштп here just yet!</p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <a class="btn btn-primary" href="#modals">Close</a>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </body>
 </html>
