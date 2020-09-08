@@ -23,15 +23,17 @@ fn main() {
 fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
 
-    let cmdline = format!(
-        "inliner -n -m --skip-absolute-urls src/webui/index.html > {}/index.html",
-        out_dir);
+    // Please don't ask me about this either
+    let command = format!("eval \"cat index.html | inliner -n -m --skip-absolute-urls > {}/index.html\"", out_dir);
+    
 
-    Command::new("bash")
-        .args(&["-c", &cmdline])
+    let mut child = Command::new("bash")
+        .current_dir("src/webui")
+        .args(&["-c", &command])
         .spawn()
         .expect("Unable to complete web resource inlining. Make sure you installed inliner (https://github.com/remy/inliner).");
 
+    child.wait().expect("Failed to generate HTML output.");
 
     println!("cargo:rerun-if-changed=src/webui/*");     
 }
