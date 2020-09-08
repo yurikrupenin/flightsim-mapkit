@@ -18,3 +18,4 @@ simconnect = { version = "0.1", optional = true }
 
 [features]
 position-update = ['simconnect']
+default = ['position-update']
